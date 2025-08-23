@@ -7,7 +7,7 @@ class KeyAction;
 template <typename T>
 class Vector;
 class File;
-typedef struct Mapping;
+struct Mapping;
 
 class Global
 {
@@ -15,8 +15,8 @@ public:
     static size_t cursorX, cursorY;
     static File file;
     static bool running;
-    static Vector<Mapping> Global::specialKeys;
-    static std::unordered_map<int, KeyAction*> Global::keyLookup;
+    static Vector<Mapping> specialKeys;
+    static std::unordered_map<int, KeyAction*> keyLookup;
 
 public:
     static Global& getInstance()
@@ -415,7 +415,7 @@ Vector<Mapping> Global::specialKeys = {
     {{KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN},KeyAction(arrows)},
     {{KEY_ENTER, 10},KeyAction(handleEnter)},
     {{27},KeyAction(handleEscape)},
-    {{8, KEY_BACKSPACE},KeyAction(handleBackspace)},
+    {{8, KEY_BACKSPACE, KEY_DC},KeyAction(handleBackspace)},
     {{KEY_HOME},KeyAction(handleHome)},
     {{KEY_END},KeyAction(handleEnd)},
 };
