@@ -1,0 +1,5 @@
+C:/Users/User/source/repos/TextEditor/build/x64-windows-vcpkg/CMakeFiles/edit_cache.dir
+C:/Users/User/source/repos/TextEditor/build/x64-windows-vcpkg/CMakeFiles/rebuild_cache.dir
+C:/Users/User/source/repos/TextEditor/build/x64-windows-vcpkg/TextEditor/CMakeFiles/TextEditor.dir
+C:/Users/User/source/repos/TextEditor/build/x64-windows-vcpkg/TextEditor/CMakeFiles/edit_cache.dir
+C:/Users/User/source/repos/TextEditor/build/x64-windows-vcpkg/TextEditor/CMakeFiles/rebuild_cache.dir

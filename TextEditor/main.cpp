@@ -1,32 +1,31 @@
 ﻿#include <curses.h>
 #include <unordered_map>
-#include <map>
 #include <stdexcept>
 #include <string>
-
 
 class KeyAction;
 template <typename T>
 class Vector;
 class File;
+typedef struct Mapping;
+
 class Global
 {
 public:
     static size_t cursorX, cursorY;
     static File file;
     static bool running;
-    static std::map<Vector<int>, KeyAction> Global::specialKeys;
+    static Vector<Mapping> Global::specialKeys;
     static std::unordered_map<int, KeyAction*> Global::keyLookup;
 
 public:
     static Global& getInstance()
     {
-        static Global    instance; // Guaranteed to be destroyed.
-        // Instantiated on first use.
+        static Global instance;
         return instance;
     }
 private:
-    Global() {}                    // Constructor? (the {} brackets) are needed here.
+    Global() {}
 public:
     Global(Global const&) = delete;
     void operator=(Global const&) = delete;
@@ -47,10 +46,16 @@ private:
     size_t size;
     size_t cap;
     void grow() {
+        grow(size + 1);
+    }
+    void grow(size_t new_size) {
         size_t og = cap;
-        if (size + 1 > cap) {
-            cap = cap == 0 ? 1 : cap * 2;
+        if (new_size > cap) {
+            size_t newCap = cap == 0 ? 1 : cap * 2;
+            while (newCap < new_size) newCap *= 2;
+            cap = newCap;
         }
+
         if (og != cap) {
             T* copy = new T[cap];
             for (size_t i = 0; i < size; i++) {
@@ -74,11 +79,8 @@ public:
         return cap;
     }
 
-    Vector() {
-        arr = nullptr;
-        size = 0;
-        cap = 0;
-    }
+    Vector() : arr(nullptr), size(0), cap(0) {}
+
     ~Vector() {
         delete[] arr;
     }
@@ -106,15 +108,6 @@ public:
         cap = rhs.cap;
         return *this;
     }
-    bool operator<(const Vector& rhs) const {
-        size_t minSize = size < rhs.size ? size : rhs.size;
-        for (size_t i = 0; i < minSize; ++i) {
-            if (arr[i] < rhs.arr[i]) return true;
-            if (arr[i] > rhs.arr[i]) return false;
-        }
-        return size < rhs.size; // shorter vector is "less" if all elements equal
-    }
-
 
     void push(const T& value) {
         grow();
@@ -131,8 +124,8 @@ public:
         return arr[size];
     }
     void insert(size_t index, const T& value) {
-        grow();
         if (index > size) throw std::runtime_error("Index out of range.");
+        grow();
         for (size_t i = size; i > index; i--) {
             arr[i] = arr[i - 1];
         }
@@ -153,7 +146,17 @@ public:
         }
         size = 0;
         cap = 0;
+        arr = nullptr;
     }
+    void mergeVectors(const Vector<T>& other) {
+        size_t oldSize = size;
+        grow(size + other.getSize());
+        for (size_t i = 0; i < other.getSize(); i++) {
+            arr[oldSize + i] = other.getArr()[i];
+        }
+        size += other.getSize();
+    }
+
 };
 
 class Line {
@@ -175,9 +178,10 @@ public:
         return text.getCap();
     }
 
-    Line() {
-        position = 0;
-        selected = false;
+    Line() : position(0), selected(false) {}
+
+    void mergeLines(Line* other) {
+        text.mergeVectors(other->text);
     }
 
     char* getText() const {
@@ -207,6 +211,7 @@ private:
     Vector<int> keyCodes;
     void(*handler)(int code);
 public:
+    KeyAction() : handler(nullptr) {}
     KeyAction(void(*_handler)(int code)) :
         handler(_handler)
     {
@@ -260,16 +265,15 @@ public:
     char removeChar() {
         auto* selectedLine = getCurrentLine();
         if (selectedLine->position == 0) {
-            if (lines.getSize() == 1) {
-                return '\0';
-            }
-            delete lines.getArr()[currentLine];
-            lines.erase(currentLine);
-            if (currentLine > 0)
+            if (currentLine > 0) {
+                auto* prevLine = lines.getArr()[currentLine - 1];
+                size_t prevEnd = prevLine->getSize();
+                prevLine->mergeLines(selectedLine);
+                prevLine->position = prevEnd;
+                delete selectedLine;
+                lines.erase(currentLine);
                 currentLine--;
-            selectedLine = getCurrentLine();
-            selectedLine->position = selectedLine->getSize();
-
+            }
             return '\0';
         }
         return selectedLine->removeChar();
@@ -305,7 +309,7 @@ public:
         if (currentLine > 0) {
             auto* selectedLine = getCurrentLine();
             auto* newLine = lines.getArr()[currentLine - 1];
-            if (selectedLine->position == 0 || selectedLine->position > newLine->getSize()) {
+            if (selectedLine->position > newLine->getSize()) {
                 newLine->position = newLine->getSize();
             }
             else {
@@ -335,6 +339,7 @@ public:
             if (currentLine > 0) {
                 auto* newLine = lines.getArr()[currentLine - 1];
                 newLine->position = newLine->getSize();
+                currentLine--;
             }
         }
         else {
@@ -396,7 +401,17 @@ void handleEnd(int code) {
     Global::file.getCurrentLine()->position = Global::file.getCurrentLine()->getSize();
 }
 
-std::map<Vector<int>, KeyAction> Global::specialKeys = {
+struct Mapping {
+    Vector<int> codes;
+    KeyAction action;
+    Mapping() {}
+    Mapping(Vector<int> _codes, KeyAction _action) :
+        codes(_codes),
+        action(_action)
+    {}
+};
+
+Vector<Mapping> Global::specialKeys = {
     {{KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN},KeyAction(arrows)},
     {{KEY_ENTER, 10},KeyAction(handleEnter)},
     {{27},KeyAction(handleEscape)},
@@ -408,9 +423,10 @@ std::map<Vector<int>, KeyAction> Global::specialKeys = {
 std::unordered_map<int, KeyAction*> Global::keyLookup;
 
 void installSpecialKeys() {
-    for (auto& [codes, action] : Global::specialKeys) {
-        for (size_t i = 0; i < codes.getSize(); i++) {
-            Global::keyLookup[codes.getArr()[i]] = &action;
+    for (size_t i = 0; i < Global::specialKeys.getSize(); i++) {
+        auto& [codes, action] = Global::specialKeys.getArr()[i];
+        for (size_t j = 0; j < codes.getSize(); j++) {
+            Global::keyLookup[codes.getArr()[j]] = &action;
         }
     }
 }
