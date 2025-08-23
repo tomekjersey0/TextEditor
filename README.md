@@ -106,6 +106,6 @@ g++ -std=c++17 -lncurses main.cpp -o editor
 
 * This project intentionally reimplements basic data structures (like `Vector`) for learning. In production code, `std::vector` would be used instead.
 * Memory management is raw (manual `new`/`delete`). Later extensions could replace this with smart pointers (`std::unique_ptr`) for safety.
-* The code favors clarity over optimization: it’s meant to be a foundation, not yet a polished editor.
+* The code favors clarity over optimization: itâ€™s meant to be a foundation, not yet a polished editor.
 
 ---
