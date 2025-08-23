@@ -1,4 +1,8 @@
-﻿#include <curses.h>
+﻿#ifdef _WIN32
+#include <curses.h>
+#else
+#include <ncurses.h>
+#endif
 #include <unordered_map>
 #include <stdexcept>
 #include <string>
@@ -454,7 +458,7 @@ int main() {
     cbreak();	/* Line buffering disabled. pass on everything */
     keypad(stdscr, TRUE);
 
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);
 
     installSpecialKeys();
     while (Global::running) {
