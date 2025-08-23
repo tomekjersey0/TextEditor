@@ -7,6 +7,8 @@ While intentionally lightweight, the project is structured in a way that makes i
 
 ---
 
+![TextEditor Demo](TextEditor/media/demo.gif)
+
 ## Features
 
 * **Custom dynamic array implementation (`Vector<T>`)**
