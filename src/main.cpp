@@ -458,7 +458,12 @@ int main() {
     cbreak();	/* Line buffering disabled. pass on everything */
     keypad(stdscr, TRUE);
 
+#ifdef WIN32
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+#else
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
+#endif
+    
 
     installSpecialKeys();
     while (Global::running) {
