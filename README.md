@@ -7,7 +7,7 @@ While intentionally lightweight, the project is structured in a way that makes i
 
 ---
 
-![TextEditor Demo](TextEditor/media/demo.gif)
+![TextEditor Demo](media/demo.gif)
 
 ## Features
 

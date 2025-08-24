@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/TextEditor.dir/src/main.cpp.o -o TextEditor  -lcurses /usr/lib/x86_64-linux-gnu/libform.so 

@@ -1,0 +1,3 @@
+/home/tomekjersey/Downloads/TextEditor/build/CMakeFiles/TextEditor.dir
+/home/tomekjersey/Downloads/TextEditor/build/CMakeFiles/edit_cache.dir
+/home/tomekjersey/Downloads/TextEditor/build/CMakeFiles/rebuild_cache.dir

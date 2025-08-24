@@ -1,15 +1,35 @@
-﻿# CMakeList.txt : Top-level CMake project file, do global configuration
-# and include sub-projects here.
-#
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 
-# Enable Hot Reload for MSVC compilers if supported.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+# Project name and version
+project(TextEditor VERSION 1.0)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Automatically gather all source and header files
+file(GLOB SOURCES "src/*.cpp")
+file(GLOB HEADERS "include/*.h")
+
+# Add include directories
+# Below not necessary?
+# include_directories(include enums src)
+
+# Add the executable
+add_executable(TextEditor ${SOURCES} ${HEADERS})
+
+# Ensure the toolchain file is set
+if(NOT CMAKE_TOOLCHAIN_FILE)
+    message(WARNING "CMAKE_TOOLCHAIN_FILE is not set. Make sure to set it globally or pass it during configuration. ONLY APPLIES TO WINDOWS")
 endif()
 
-project ("TextEditor")
-
-# Include sub-projects.
-add_subdirectory ("TextEditor")
+# Find and link platform-specific libraries
+if(WIN32)
+    # Use vcpkg-provided target for PDCurses (unofficial-pdcurses for MinGW)
+    find_package(unofficial-pdcurses CONFIG REQUIRED)
+    target_link_libraries(TextEditor PRIVATE unofficial::pdcurses::pdcurses)
+elseif(UNIX)
+    # Use ncurses on Linux
+    find_package(Curses REQUIRED)
+    target_link_libraries(TextEditor PRIVATE ${CURSES_LIBRARIES})
+endif()
