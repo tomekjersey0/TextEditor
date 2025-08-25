@@ -38,6 +38,7 @@ While intentionally lightweight, the project is structured in a way that makes i
 ## Requirements
 
 * **C++17 or newer**
+* **cmake**
 * **ncurses library**
 
   * On Linux: install with your package manager (`sudo apt install libncurses5-dev libncursesw5-dev`).
@@ -51,25 +52,28 @@ While intentionally lightweight, the project is structured in a way that makes i
 ### Linux / macOS
 
 ```bash
-g++ -std=c++17 -lncurses main.cpp -o editor
-./editor
+cmake -S . -B build
+cmake --build build
+./build/TextEditor
 ```
 
 ### Windows (MinGW + PDCurses)
 
-1. Install PDCurses (clone or download).
-2. Build PDCurses and link against `pdcurses.a`.
-3. Compile with:
-
-   ```bash
-   g++ -std=c++17 main.cpp -o editor -I/path/to/pdcurses -L/path/to/pdcurses -lpdcurses
-   ```
+1. Install PDCurses (via vcpkg)
+```bash
+vcpkg install pdcurses
+vcpkg integrate install
+```
+2. Compile with:
+```bash
+cmake -S . -B build
+cmake --build build  
+```
+Additional requirements will be informed to you on cmake initialization
 4. Run:
-
-   ```bash
-   ./editor
-   ```
-
+```bash
+./build/TextEditor
+```
 ---
 
 ## Usage
